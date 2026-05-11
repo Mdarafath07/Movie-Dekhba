@@ -1,58 +1,80 @@
-# Movie Dekhba
+🎬 Movie Dekhba
 
-Movie Dekhba is a modern, fully responsive Flutter movie streaming app built with Clean Architecture, featuring a Netflix-like UI, Riverpod state management, and TMDB API integration.
+Movie Dekhba is a modern, fully responsive Flutter movie streaming application designed with a clean and scalable architecture. It delivers a smooth, Netflix-style browsing experience with rich UI, fast search, and seamless authentication.
 
-## Features
-- **Authentication**: Firebase Auth (Email/Password & Google Sign-In)
-- **Netflix Style UI**: Trending hero banner, popular carousels, responsive design.
-- **Movie Details**: Full information, cast, ratings.
-- **Search**: Real-time TMDB search.
-- **Play System**: WebView integration for watching movies.
+✨ Features
+🔐 Authentication
+Email & Password login system
+Google Sign-In support
+Secure user session handling
+🎥 Modern UI/UX
+Netflix-inspired interface
+Trending hero banner section
+Horizontal movie carousels (Popular, Top Rated, Trending)
+Fully responsive design for all screen sizes
+🎬 Movie Experience
+Detailed movie pages with posters, ratings, and descriptions
+Cast & related information display
+Smooth navigation between screens
+🔎 Smart Search
+Real-time movie search functionality
+Instant results with responsive UI updates
+▶️ Watching Experience
+In-app web-based playback system
+Smooth transition from details to player screen
+🧠 Architecture
 
-## Prerequisites
-- Flutter SDK (latest stable)
-- Firebase Account
-- TMDB API Key
+The project is built using Clean Architecture principles for scalability and maintainability:
 
-## Setup Guide
+core/ → App-wide utilities, theme, and network helpers
+api/ → API configuration and endpoints handling
+models/ → Data models and parsing logic
+repositories/ → Data fetching layer (remote services)
+providers/ → State management using Riverpod
+screens/ → UI pages and views
+⚙️ Setup Instructions
+1. Environment Configuration
 
-### 1. TMDB API Key
-1. Go to [TMDB](https://www.themoviedb.org/) and create an account.
-2. Navigate to your Account Settings -> API, and request an API key.
-3. In the root directory of this project, create a `.env` file:
-   ```env
-   TMDB_API_KEY=your_actual_tmdb_api_key_here
-   ```
+Create a .env file in the root directory:
 
-### 2. Firebase Setup
-Since this project uses Firebase Auth, you need to set it up:
-1. Go to the [Firebase Console](https://console.firebase.google.com/).
-2. Create a new project named "Movie Dekhba".
-3. Run `flutterfire configure` in the root of the project to generate/update your `firebase_options.dart` file.
-4. In the Firebase Console, go to **Authentication > Sign-in method**.
-5. Enable **Email/Password** and **Google** sign-in providers.
+API_KEY=your_api_key_here
 
-### 3. Running the App
-1. Get the dependencies:
-   ```bash
-   flutter pub get
-   ```
-2. Generate models (if needed):
-   ```bash
-   flutter pub run build_runner build --delete-conflicting-outputs
-   ```
-3. Run the app:
-   ```bash
-   flutter run
-   ```
+This key is used to fetch all movie-related data from the backend service.
 
-## Architecture
-The app follows Clean Architecture principles:
-- `lib/core`: Utilities, Network, Theme
-- `lib/api`: API Constants
-- `lib/models`: Data structures
-- `lib/repositories`: Data fetching (API/Firebase)
-- `lib/providers`: Riverpod state
-- `lib/screens`: UI screens
+2. Backend Service Setup
+Create an account on the movie data provider platform
+Generate your API key from the developer section
+Enable necessary access permissions for movie data and search
+3. Firebase Setup
 
-Enjoy watching on Movie Dekhba!
+This project uses Firebase for authentication:
+
+Create a Firebase project
+Add Android & iOS apps
+Enable:
+Email/Password authentication
+Google authentication
+Run configuration:
+flutterfire configure
+4. Run the Project
+
+Install dependencies:
+
+flutter pub get
+
+Generate required files:
+
+flutter pub run build_runner build --delete-conflicting-outputs
+
+Run the app:
+
+flutter run
+🚀 Tech Stack
+Flutter (UI Framework)
+Riverpod (State Management)
+Firebase Authentication
+REST-based movie data service
+Clean Architecture Pattern
+🎯 Goal
+
+The goal of Movie Dekhba is to provide a smooth, elegant, and scalable movie browsing experience with a production-level Flutter architecture that is easy to maintain and extend.
