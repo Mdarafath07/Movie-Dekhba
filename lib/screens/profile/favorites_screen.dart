@@ -1,0 +1,209 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../providers/favorite_provider.dart';
+import '../../api/endpoints.dart';
+import '../../repositories/firestore_repository.dart';
+
+class FavoritesScreen extends ConsumerWidget {
+  const FavoritesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favoritesAsync = ref.watch(favoritesStreamProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = isDark ? const Color(0xFF0D0F14) : const Color(0xFFF5F6FA);
+    final textPrimary = isDark ? const Color(0xFFF0F2F5) : const Color(0xFF0D1117);
+    final textSecondary = isDark ? const Color(0xFF8B95A8) : const Color(0xFF4A5568);
+    final cardColor = isDark ? const Color(0xFF161B22) : Colors.white;
+
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          backgroundColor: cardColor,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new, color: textPrimary, size: 20),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            'My Favorites',
+            style: GoogleFonts.poppins(
+              color: textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          bottom: TabBar(
+            tabs: const [
+              Tab(text: 'Movies'),
+              Tab(text: 'TV Shows'),
+            ],
+            indicatorColor: const Color(0xFFE50914),
+            indicatorWeight: 3,
+            labelColor: textPrimary,
+            unselectedLabelColor: textSecondary,
+            labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14),
+            unselectedLabelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+        ),
+        body: favoritesAsync.when(
+          data: (favorites) {
+            final movies = favorites.where((f) => f.mediaType == 'movie').toList();
+            final tvShows = favorites.where((f) => f.mediaType == 'tv').toList();
+            return TabBarView(
+              children: [
+                _MediaGrid(items: movies, emptyIcon: Icons.movie_outlined, emptyMsg: 'No favorite movies yet', textPrimary: textPrimary, textSecondary: textSecondary, isDark: isDark),
+                _MediaGrid(items: tvShows, emptyIcon: Icons.tv_outlined, emptyMsg: 'No favorite shows yet', textPrimary: textPrimary, textSecondary: textSecondary, isDark: isDark),
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE50914), strokeWidth: 2)),
+          error: (e, _) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.wifi_off_rounded, size: 48, color: Color(0xFFE50914)),
+                const SizedBox(height: 12),
+                Text('No internet connection', style: GoogleFonts.poppins(color: textSecondary, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MediaGrid extends StatelessWidget {
+  final List<FavoriteItem> items;
+  final IconData emptyIcon;
+  final String emptyMsg;
+  final Color textPrimary;
+  final Color textSecondary;
+  final bool isDark;
+
+  const _MediaGrid({
+    required this.items,
+    required this.emptyIcon,
+    required this.emptyMsg,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(emptyIcon, size: 40, color: textSecondary.withOpacity(0.5)),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              emptyMsg,
+              style: GoogleFonts.poppins(
+                color: textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Explore and add to your favorites!',
+              style: GoogleFonts.poppins(color: textSecondary, fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const BouncingScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 0.62,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return GestureDetector(
+          onTap: () => context.push('/${item.mediaType}/${item.id}'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: CachedNetworkImage(
+                        imageUrl: '${Endpoints.imageBaseUrl}${item.posterPath}',
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(Icons.broken_image_outlined, color: textSecondary.withOpacity(0.5)),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE50914).withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4)],
+                        ),
+                        child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                item.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
