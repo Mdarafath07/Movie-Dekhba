@@ -37,13 +37,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       
       if (updateInfo != null && updateInfo.latestVersion != UpdateService.currentVersion) {
         if (mounted) {
-          showDialog(
+          showGeneralDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => UpdateDialog(
+            barrierLabel: '',
+            transitionDuration: const Duration(milliseconds: 400),
+            pageBuilder: (context, anim1, anim2) => UpdateDialog(
               latestVersion: updateInfo.latestVersion,
               updateLink: updateInfo.updateLink,
+              newFeatures: updateInfo.newFeatures,
             ),
+            transitionBuilder: (context, anim1, anim2, child) {
+              return FadeTransition(
+                opacity: anim1,
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 0.9, end: 1.0).animate(
+                    CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
+                  ),
+                  child: child,
+                ),
+              );
+            },
           );
         }
       }
@@ -309,18 +323,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(height: 48),
 
             // ── Footer ────────────────────────────────────
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'Developed by Arafath ❤️',
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFF4A5568),
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            ),
+
           ],
         ),
       ),

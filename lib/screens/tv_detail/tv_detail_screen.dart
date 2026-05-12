@@ -81,6 +81,7 @@ class _TvDetailContent extends ConsumerStatefulWidget {
 class _TvDetailContentState extends ConsumerState<_TvDetailContent> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int? _expandedSeason;
+  String? _cachedImdbId;
 
   @override
   void initState() {
@@ -92,62 +93,6 @@ class _TvDetailContentState extends ConsumerState<_TvDetailContent> with SingleT
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _showAudioSheet(bool isDark, Color textPrimary, Color cardColor) {
-    final langs = widget.tv.languages.isNotEmpty ? widget.tv.languages : ['en'];
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: cardColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  margin: const EdgeInsets.only(bottom: 24),
-                ),
-              ),
-              Text('Audio & Subtitles', 
-                style: GoogleFonts.poppins(color: textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              Text('AUDIO', 
-                style: GoogleFonts.poppins(color: const Color(0xFFE50914), fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
-              const SizedBox(height: 8),
-              ...langs.map((lang) => ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.volume_up_rounded, color: textPrimary.withOpacity(0.7)),
-                title: Text(lang.toUpperCase(), style: GoogleFonts.poppins(color: textPrimary, fontWeight: FontWeight.w500)),
-                trailing: lang == langs.first ? const Icon(Icons.check_circle_rounded, color: Color(0xFFE50914)) : null,
-              )),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Divider(thickness: 0.5),
-              ),
-              Text('SUBTITLES', 
-                style: GoogleFonts.poppins(color: const Color(0xFFE50914), fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.subtitles_rounded, color: textPrimary.withOpacity(0.7)),
-                title: Text('Off', style: GoogleFonts.poppins(color: textPrimary, fontWeight: FontWeight.w500)),
-                trailing: const Icon(Icons.check_circle_rounded, color: Color(0xFFE50914)),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -294,9 +239,28 @@ class _TvDetailContentState extends ConsumerState<_TvDetailContent> with SingleT
                         child: Text(g.name, style: GoogleFonts.poppins(color: textSecondary, fontSize: 11.5, fontWeight: FontWeight.w500)),
                       )).toList(),
                     ),
-                   const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+                  // Official Audio Row
+                  if (tv.languages.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(Icons.language_rounded, color: textSecondary, size: 14),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Official Audio: ',
+                          style: GoogleFonts.poppins(color: textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        Expanded(
+                          child: Text(
+                            tv.languages.join(', ').toUpperCase(),
+                            style: GoogleFonts.poppins(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold),
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 16),
 
-                  // PLAY BUTTON
                   Consumer(
                     builder: (context, ref, child) {
                       final externalIdsAsync = ref.watch(tvExternalIdsProvider(tv.id));
@@ -304,6 +268,15 @@ class _TvDetailContentState extends ConsumerState<_TvDetailContent> with SingleT
                         onPressed: () {
                           externalIdsAsync.when(
                             data: (ids) {
+                              if (ids.imdbId != null) {
+                                setState(() => _cachedImdbId = ids.imdbId);
+                              }
+                              final url = PlayUrlHelper.getTvServers(
+                                imdbId: ids.imdbId,
+                                tmdbId: tv.id,
+                                season: 1,
+                                episode: 1,
+                              ).first.url;
                               ref.read(recentPlaysProvider.notifier).addToRecent(
                                 FavoriteItem(
                                   id: tv.id,
@@ -314,10 +287,7 @@ class _TvDetailContentState extends ConsumerState<_TvDetailContent> with SingleT
                                   createdAt: DateTime.now(),
                                 ),
                               );
-                              context.push('/play', extra: PlayUrlHelper.getPlayUrl(
-                                imdbId: ids.imdbId,
-                                tmdbId: tv.id,
-                              ));
+                              context.push('/play', extra: url);
                             },
                             loading: () => ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Loading playback info...')),
@@ -389,10 +359,10 @@ class _TvDetailContentState extends ConsumerState<_TvDetailContent> with SingleT
                       ),
                       const SizedBox(width: 8),
                       _CompactActionButton(
-                        icon: Icons.language_rounded,
-                        label: 'Audio',
+                        icon: Icons.share_rounded,
+                        label: 'Share',
                         color: const Color(0xFF06B6D4),
-                        onTap: () => _showAudioSheet(isDark, textPrimary, cardColor),
+                        onTap: () {},
                         isDark: isDark, textPrimary: textPrimary, cardColor: cardColor,
                       ),
                     ],
@@ -474,6 +444,7 @@ class _CompactActionButton extends ConsumerWidget {
   final Color textPrimary;
   final Color cardColor;
   final ProviderListenable<AsyncValue<bool>>? isActiveProvider;
+  final bool isActive;
 
   const _CompactActionButton({
     required this.icon,
@@ -485,13 +456,14 @@ class _CompactActionButton extends ConsumerWidget {
     required this.textPrimary,
     required this.cardColor,
     this.isActiveProvider,
+    this.isActive = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    bool isActive = false;
+    bool active = isActive;
     if (isActiveProvider != null) {
-      isActive = ref.watch(isActiveProvider!).value ?? false;
+      active = ref.watch(isActiveProvider!).value ?? false;
     }
 
     return Expanded(
@@ -504,7 +476,7 @@ class _CompactActionButton extends ConsumerWidget {
             color: cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isActive ? color : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.12)),
+              color: active ? color : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.12)),
               width: 1,
             ),
           ),
@@ -512,8 +484,8 @@ class _CompactActionButton extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                isActive ? (activeIcon ?? icon) : icon,
-                color: isActive ? color : textPrimary.withOpacity(0.6),
+                active ? (activeIcon ?? icon) : icon,
+                color: active ? color : textPrimary.withOpacity(0.6),
                 size: 20,
               ),
               const SizedBox(height: 4),
@@ -522,9 +494,9 @@ class _CompactActionButton extends ConsumerWidget {
                 child: Text(
                   label,
                   style: GoogleFonts.poppins(
-                    color: isActive ? color : textPrimary.withOpacity(0.6),
+                    color: active ? color : textPrimary.withOpacity(0.6),
                     fontSize: 10,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
               ),

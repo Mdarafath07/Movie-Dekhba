@@ -68,19 +68,26 @@ class MovieDetailScreen extends ConsumerWidget {
   }
 }
 
-class _MovieDetailContent extends ConsumerWidget {
+class _MovieDetailContent extends ConsumerStatefulWidget {
   final dynamic movie;
   final int movieId;
   const _MovieDetailContent({required this.movie, required this.movieId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final videosAsync = ref.watch(movieVideosProvider(movieId));
-    final keywordsAsync = ref.watch(movieKeywordsProvider(movieId));
-    final reviewsAsync = ref.watch(movieReviewsProvider(movieId));
-    final watchProvidersAsync = ref.watch(movieWatchProvidersProvider(movieId));
-    final similarAsync = ref.watch(similarMoviesProvider(movieId));
+  ConsumerState<_MovieDetailContent> createState() => _MovieDetailContentState();
+}
+
+class _MovieDetailContentState extends ConsumerState<_MovieDetailContent> {
+  @override
+  Widget build(BuildContext context) {
+    final videosAsync = ref.watch(movieVideosProvider(widget.movieId));
+    final keywordsAsync = ref.watch(movieKeywordsProvider(widget.movieId));
+    final reviewsAsync = ref.watch(movieReviewsProvider(widget.movieId));
+    final watchProvidersAsync = ref.watch(movieWatchProvidersProvider(widget.movieId));
+    final similarAsync = ref.watch(similarMoviesProvider(widget.movieId));
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final movie = widget.movie;
+    final movieId = widget.movieId;
 
     final bgColor = isDark ? const Color(0xFF0D0F14) : const Color(0xFFF5F6FA);
     final textPrimary = isDark ? const Color(0xFFF0F2F5) : const Color(0xFF0D1117);
@@ -191,11 +198,30 @@ class _MovieDetailContent extends ConsumerWidget {
                           maxLines: 1, overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ],
+                   ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+                  // Official Audio Row
+                  if (movie.spokenLanguages.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(Icons.language_rounded, color: textSecondary, size: 14),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Official Audio: ',
+                          style: GoogleFonts.poppins(color: textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        Expanded(
+                          child: Text(
+                            movie.spokenLanguages.map((l) => l.englishName).join(', '),
+                            style: GoogleFonts.poppins(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold),
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 16),
 
-                  // ── Play button ───────────────────────────────────
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -210,10 +236,11 @@ class _MovieDetailContent extends ConsumerWidget {
                             createdAt: DateTime.now(),
                           ),
                         );
-                        context.push('/play', extra: PlayUrlHelper.getPlayUrl(
+                        final url = PlayUrlHelper.getMovieServers(
                           imdbId: movie.imdbId,
                           tmdbId: movie.id,
-                        ));
+                        ).first.url;
+                        context.push('/play', extra: url);
                       },
                       icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
                       label: Text('PLAY NOW', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: 1.1)),
@@ -688,6 +715,7 @@ class _CompactActionButton extends ConsumerWidget {
   final Color textPrimary;
   final Color cardColor;
   final ProviderListenable<AsyncValue<bool>>? isActiveProvider;
+  final bool isActive;
 
   const _CompactActionButton({
     required this.icon,
@@ -699,13 +727,14 @@ class _CompactActionButton extends ConsumerWidget {
     required this.textPrimary,
     required this.cardColor,
     this.isActiveProvider,
+    this.isActive = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    bool isActive = false;
+    bool active = isActive;
     if (isActiveProvider != null) {
-      isActive = ref.watch(isActiveProvider!).value ?? false;
+      active = ref.watch(isActiveProvider!).value ?? false;
     }
 
     return Expanded(
@@ -718,7 +747,7 @@ class _CompactActionButton extends ConsumerWidget {
             color: cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isActive ? color : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.12)),
+              color: active ? color : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.12)),
               width: 1,
             ),
           ),
@@ -726,8 +755,8 @@ class _CompactActionButton extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                isActive ? (activeIcon ?? icon) : icon,
-                color: isActive ? color : textPrimary.withOpacity(0.6),
+                active ? (activeIcon ?? icon) : icon,
+                color: active ? color : textPrimary.withOpacity(0.6),
                 size: 20,
               ),
               const SizedBox(height: 4),
@@ -736,9 +765,9 @@ class _CompactActionButton extends ConsumerWidget {
                 child: Text(
                   label,
                   style: GoogleFonts.poppins(
-                    color: isActive ? color : textPrimary.withOpacity(0.6),
+                    color: active ? color : textPrimary.withOpacity(0.6),
                     fontSize: 10,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
               ),

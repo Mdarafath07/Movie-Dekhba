@@ -31,6 +31,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   double? _userRating;
+  String? _cachedImdbId;
 
   EpisodeParams get _params => (
         seriesId: widget.seriesId,
@@ -49,6 +50,8 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen>
     _tabController.dispose();
     super.dispose();
   }
+
+
 
   void _showRatingDialog(bool isDark, Color textPrimary, Color cardColor) {
     double tempRating = _userRating ?? 7.0;
@@ -198,7 +201,7 @@ class _EpisodeContent extends ConsumerWidget {
     required this.params,
     required this.seriesName,
     required this.tabController,
-    required this.userRating,
+    this.userRating,
     required this.onRate,
   });
 
@@ -363,7 +366,38 @@ class _EpisodeContent extends ConsumerWidget {
                       'Aired: ${ep.airDate}',
                       style: GoogleFonts.poppins(color: textSecondary, fontSize: 12),
                     ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+                  // Official Audio Row
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final tvDetailsAsync = ref.watch(tvDetailsProvider(params.seriesId));
+                      return tvDetailsAsync.maybeWhen(
+                        data: (tv) => tv.languages.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.language_rounded, color: textSecondary, size: 14),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Official Audio: ',
+                                      style: GoogleFonts.poppins(color: textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        tv.languages.join(', ').toUpperCase(),
+                                        style: GoogleFonts.poppins(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold),
+                                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                        orElse: () => const SizedBox.shrink(),
+                      );
+                    },
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -371,17 +405,18 @@ class _EpisodeContent extends ConsumerWidget {
                         child: Consumer(
                           builder: (context, ref, child) {
                             final seriesIdsAsync = ref.watch(tvExternalIdsProvider(params.seriesId));
-                            
+
                             return ElevatedButton.icon(
                               onPressed: () {
                                 seriesIdsAsync.when(
                                   data: (sIds) {
-                                    context.push('/play', extra: PlayUrlHelper.getPlayUrl(
+                                    final url = PlayUrlHelper.getTvServers(
                                       imdbId: sIds.imdbId,
                                       tmdbId: params.seriesId,
-                                      season: params.seasonNumber, 
+                                      season: params.seasonNumber,
                                       episode: params.episodeNumber,
-                                    ));
+                                    ).first.url;
+                                    context.push('/play', extra: url);
                                   },
                                   loading: () => ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Loading playback info...')),
@@ -392,7 +427,7 @@ class _EpisodeContent extends ConsumerWidget {
                                 );
                               },
                               icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
-                              label: Text('PLAY EPISODE', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 1)),
+                              label: Text('PLAY EPISODE', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.8)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFE50914),
                                 minimumSize: const Size(0, 54),
@@ -429,7 +464,9 @@ class _EpisodeContent extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 32),
+
                   // Overview
+
                   if (ep.overview.isNotEmpty) ...[
                     Text('Overview', style: GoogleFonts.poppins(color: textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
