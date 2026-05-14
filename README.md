@@ -35,9 +35,6 @@ screens/ → UI pages and views
 ⚙️ Setup Instructions
 1. Environment Configuration
 
-Create a .env file in the root directory:
-
-API_KEY=your_api_key_here
 
 This key is used to fetch all movie-related data from the backend service.
 
