@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../models/movie_model.dart';
 import '../../../api/endpoints.dart';
 import '../../../widgets/shimmer_loading.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 class TrendingCarousel extends StatefulWidget {
   final List<Movie> movies;
@@ -21,13 +22,15 @@ class _TrendingCarouselState extends State<TrendingCarousel> {
   Widget build(BuildContext context) {
     final items = widget.movies.take(6).toList();
     if (items.isEmpty) return const SizedBox();
+    final carouselHeight = Responsive.carouselHeight(context);
+    final hPad = Responsive.horizontalPad(context);
 
     return Stack(
       children: [
         CarouselSlider.builder(
           itemCount: items.length,
           options: CarouselOptions(
-            height: 500,
+            height: carouselHeight,
             viewportFraction: 1.0,
             autoPlay: true,
             autoPlayInterval: const Duration(seconds: 6),
@@ -77,9 +80,9 @@ class _TrendingCarouselState extends State<TrendingCarousel> {
                   ),
                   // Content overlay
                   Positioned(
-                    bottom: 32,
-                    left: 16,
-                    right: 16,
+                    bottom: 36,
+                    left: hPad,
+                    right: hPad,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

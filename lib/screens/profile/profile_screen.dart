@@ -19,8 +19,8 @@ class ProfileScreen extends ConsumerWidget {
     final user = ref.watch(userProvider);
     final themeMode = ref.watch(themeProvider);
     final recentPlays = ref.watch(recentPlaysProvider);
-    final favorites = ref.watch(favoritesStreamProvider).value ?? [];
-    final watchlist = ref.watch(watchlistStreamProvider).value ?? [];
+    final favorites = ref.watch(favoritesStreamProvider).valueOrNull ?? [];
+    final watchlist = ref.watch(watchlistStreamProvider).valueOrNull ?? [];
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgColor = isDark ? const Color(0xFF0D0F14) : const Color(0xFFF5F6FA);
@@ -378,24 +378,10 @@ class ProfileScreen extends ConsumerWidget {
                   Center(
                     child: Column(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE50914).withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '❤️ Developed by Arafath',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFFE50914).withOpacity(0.7),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
+
+
                         Text(
-                          'Movie Dekhba v1.0.0',
+                          'Movie Dekhba v1.0.2',
                           style: GoogleFonts.poppins(
                             color: textSecondary.withOpacity(0.5),
                             fontSize: 10.5,

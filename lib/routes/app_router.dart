@@ -9,6 +9,7 @@ import '../screens/tv_detail/episode_detail_screen.dart';
 import '../screens/profile/favorites_screen.dart';
 import '../screens/profile/watchlist_screen.dart';
 import '../webview/play_webview_screen.dart';
+import '../screens/home/explore_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -71,6 +72,19 @@ class AppRouter {
             seasonNumber: season,
             episodeNumber: episode,
             seriesName: seriesName,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/explore',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return ExploreScreen(
+            title: extra['title'] ?? 'Explore',
+            type: extra['type'] ?? 'movie',
+            category: extra['category'] ?? 'popular',
+            genreId: extra['genreId'],
+            certification: extra['certification'],
           );
         },
       ),

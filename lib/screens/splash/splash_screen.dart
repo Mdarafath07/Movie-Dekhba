@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,7 +33,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(milliseconds: 3200));
+    if (!kIsWeb) {
+      await Future.delayed(const Duration(milliseconds: 3200));
+    } else {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+    
     if (!mounted) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -138,10 +144,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.movie_creation_rounded,
-                    color: Colors.white,
-                    size: 54,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Image.asset(
+                      'lib/assets/applogo.png',
+                      color: Colors.white,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 )
                     .animate()
@@ -247,7 +256,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 ).animate().fade(delay: 1500.ms, duration: 800.ms),
                 const SizedBox(height: 4),
                 Text(
-                  'v1.0.0',
+                  'v1.0.2',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     color: const Color(0xFF2A3142),

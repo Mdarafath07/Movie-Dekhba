@@ -5,6 +5,7 @@ import '../../providers/auth_providers.dart';
 import '../../providers/tv_providers.dart';
 import '../../models/tv_show_model.dart';
 import '../../widgets/movie_poster.dart';
+import '../../core/utils/responsive_utils.dart';
 
 // Provide a guest session ID for demo purposes.
 // In a real app, this would be generated once and stored securely.
@@ -48,24 +49,27 @@ class RatingsScreen extends ConsumerWidget {
             );
           }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 0.65,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+          return Responsive.constrainedContent(
+            context: context,
+            child: GridView.builder(
+              padding: const EdgeInsets.all(12),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: Responsive.gridColumns(context),
+                childAspectRatio: Responsive.gridAspectRatio(context),
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: shows.length,
+              itemBuilder: (context, index) {
+                final show = shows[index];
+                return MoviePoster(
+                  posterPath: show.posterPath,
+                  width: double.infinity,
+                  height: double.infinity,
+                  onTap: () {},
+                );
+              },
             ),
-            itemCount: shows.length,
-            itemBuilder: (context, index) {
-              final show = shows[index];
-              return MoviePoster(
-                posterPath: show.posterPath,
-                width: double.infinity,
-                height: double.infinity,
-                onTap: () {},
-              );
-            },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

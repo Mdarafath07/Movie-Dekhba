@@ -60,10 +60,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           if (user != null) context.go('/main');
         },
         error: (err, _) {
+          String msg = err.toString().toLowerCase();
+          if (msg.contains('user-not-found') || msg.contains('invalid-email') || msg.contains('no-user')) {
+            msg = 'Wrong Email';
+          } else if (msg.contains('wrong-password') || msg.contains('invalid-credential') || msg.contains('password')) {
+            msg = 'Wrong Password';
+          } else if (msg.contains('network') || msg.contains('internet')) {
+            msg = 'Network Error';
+          } else if (msg.contains('too-many')) {
+            msg = 'Too Many Tries';
+          } else if (msg.contains('disabled')) {
+            msg = 'Account Blocked';
+          } else {
+            msg = 'Login Failed';
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(err.toString().replaceAll('Exception: ', '')),
+              content: Text(msg),
               behavior: SnackBarBehavior.floating,
+              width: 200,
             ),
           );
         },
@@ -139,10 +154,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const SizedBox(height: 20),
 
@@ -169,8 +187,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   ),
                                 ],
                               ),
-                              child: const Icon(Icons.movie_creation_rounded,
-                                  color: Colors.white, size: 40),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Image.asset(
+                                    'lib/assets/applogo.png',
+                                    color: Colors.white,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
                             )
                                 .animate()
                                 .scale(
@@ -183,7 +209,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                             // Bangla title
                             Text(
-                              '🎬 মুভি দেখবা',
+                              'মুভি দেখবা',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.notoSansBengali(
                                 color: isDark
@@ -282,8 +308,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: Icons.email_outlined,
                         textInputAction: TextInputAction.next,
-                        validator: (val) =>
-                            val != null && val.isNotEmpty ? null : 'Email required',
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Required';
+                          final emailRegExp = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                          if (!emailRegExp.hasMatch(val)) return 'Wrong Email';
+                          return null;
+                        },
                       )
                           .animate()
                           .fade(delay: 550.ms, duration: 400.ms)
@@ -299,8 +329,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         prefixIcon: Icons.lock_outline_rounded,
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => isLoading ? null : _login(),
-                        validator: (val) =>
-                            val != null && val.isNotEmpty ? null : 'Password required',
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Required';
+                          if (val.length < 6) return 'Short Password';
+                          return null;
+                        },
                       )
                           .animate()
                           .fade(delay: 600.ms, duration: 400.ms)
@@ -403,16 +436,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                       // ── Footer ────────────────────────────
                       Center(
-                        child: Text(
-                          'Developed by Arafath ❤️',
-                          style: GoogleFonts.poppins(
-                            color: isDark
-                                ? const Color(0xFF4A5568)
-                                : const Color(0xFF9BA3AF),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
+
                       )
                           .animate()
                           .fade(delay: 900.ms, duration: 400.ms),
@@ -424,6 +448,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ),
             ),
           ),
+        ),
+      ),
         ],
       ),
     );

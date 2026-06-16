@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../../providers/user_content_providers.dart';
 import '../../api/endpoints.dart';
 import '../../repositories/firestore_repository.dart';
+import '../../core/utils/responsive_utils.dart';
 
 class WatchlistScreen extends ConsumerWidget {
   const WatchlistScreen({super.key});
@@ -64,16 +66,38 @@ class WatchlistScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE50914), strokeWidth: 2)),
-          error: (e, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.wifi_off_rounded, size: 48, color: Color(0xFFE50914)),
-                const SizedBox(height: 12),
-                Text('No internet connection', style: GoogleFonts.poppins(color: textSecondary, fontWeight: FontWeight.w600)),
-              ],
-            ),
-          ),
+          error: (e, _) {
+            final isPermissionDenied = e is FirebaseException && e.code == 'permission-denied';
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      isPermissionDenied ? Icons.lock_outline_rounded : Icons.wifi_off_rounded,
+                      size: 48,
+                      color: const Color(0xFFE50914),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      isPermissionDenied ? 'Access Denied (Rules Expired)' : 'No internet connection',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(color: textPrimary, fontWeight: FontWeight.w700, fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isPermissionDenied
+                          ? 'Please set/update your Firestore Rules in Firebase Console to allow read/write.'
+                          : 'Please check your connection and try again.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(color: textSecondary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -130,78 +154,81 @@ class _WatchlistGrid extends StatelessWidget {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      physics: const BouncingScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.62,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 16,
+    return Responsive.constrainedContent(
+      context: context,
+      child: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        physics: const BouncingScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: Responsive.gridColumns(context),
+          childAspectRatio: Responsive.gridAspectRatio(context),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return GestureDetector(
+            onTap: () => context.push('/${item.mediaType}/${item.id}'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: '${Endpoints.imageBaseUrl}${item.posterPath}',
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          errorWidget: (_, __, ___) => Container(
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(Icons.broken_image_outlined, color: textSecondary.withOpacity(0.5)),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF59E0B).withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4)],
+                          ),
+                          child: const Icon(Icons.bookmark_rounded, color: Colors.white, size: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return GestureDetector(
-          onTap: () => context.push('/${item.mediaType}/${item.id}'),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: CachedNetworkImage(
-                        imageUrl: '${Endpoints.imageBaseUrl}${item.posterPath}',
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        errorWidget: (_, __, ___) => Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(Icons.broken_image_outlined, color: textSecondary.withOpacity(0.5)),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B).withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(6),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4)],
-                        ),
-                        child: const Icon(Icons.bookmark_rounded, color: Colors.white, size: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                item.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: textPrimary,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

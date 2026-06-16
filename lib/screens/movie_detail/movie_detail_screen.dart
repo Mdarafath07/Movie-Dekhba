@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../../providers/movie_providers.dart';
 import '../../api/endpoints.dart';
 import '../../widgets/shimmer_loading.dart';
@@ -82,12 +83,10 @@ class _MovieDetailContentState extends ConsumerState<_MovieDetailContent> {
   Widget build(BuildContext context) {
     final videosAsync = ref.watch(movieVideosProvider(widget.movieId));
     final keywordsAsync = ref.watch(movieKeywordsProvider(widget.movieId));
-    final reviewsAsync = ref.watch(movieReviewsProvider(widget.movieId));
     final watchProvidersAsync = ref.watch(movieWatchProvidersProvider(widget.movieId));
     final similarAsync = ref.watch(similarMoviesProvider(widget.movieId));
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final movie = widget.movie;
-    final movieId = widget.movieId;
 
     final bgColor = isDark ? const Color(0xFF0D0F14) : const Color(0xFFF5F6FA);
     final textPrimary = isDark ? const Color(0xFFF0F2F5) : const Color(0xFF0D1117);
@@ -222,34 +221,41 @@ class _MovieDetailContentState extends ConsumerState<_MovieDetailContent> {
                     ),
                   const SizedBox(height: 16),
 
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ref.read(recentPlaysProvider.notifier).addToRecent(
-                          FavoriteItem(
-                            id: movie.id,
-                            title: movie.title,
-                            posterPath: movie.posterPath,
-                            mediaType: 'movie',
-                            voteAverage: movie.voteAverage.toDouble(),
-                            createdAt: DateTime.now(),
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.isWeb(context) ? 320 : double.infinity,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            ref.read(recentPlaysProvider.notifier).addToRecent(
+                              FavoriteItem(
+                                id: movie.id,
+                                title: movie.title,
+                                posterPath: movie.posterPath,
+                                mediaType: 'movie',
+                                voteAverage: movie.voteAverage.toDouble(),
+                                createdAt: DateTime.now(),
+                              ),
+                            );
+                            final url = PlayUrlHelper.getMovieServers(
+                              imdbId: movie.imdbId,
+                              tmdbId: movie.id,
+                            ).first.url;
+                            context.push('/play', extra: url);
+                          },
+                          icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
+                          label: Text('PLAY NOW', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: 1.1)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFE50914),
+                            minimumSize: const Size(double.infinity, 54),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 8,
+                            shadowColor: const Color(0xFFE50914).withOpacity(0.4),
                           ),
-                        );
-                        final url = PlayUrlHelper.getMovieServers(
-                          imdbId: movie.imdbId,
-                          tmdbId: movie.id,
-                        ).first.url;
-                        context.push('/play', extra: url);
-                      },
-                      icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
-                      label: Text('PLAY NOW', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: 1.1)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE50914),
-                        minimumSize: const Size(double.infinity, 54),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 8,
-                        shadowColor: const Color(0xFFE50914).withOpacity(0.4),
+                        ),
                       ),
                     ),
                   ),
@@ -428,99 +434,7 @@ class _MovieDetailContentState extends ConsumerState<_MovieDetailContent> {
             ),
           ),
 
-          // ── Reviews ──────────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: reviewsAsync.when(
-              data: (data) {
-                if (data.results.isEmpty) return const SizedBox.shrink();
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: _SectionTitle(title: 'Reviews'),
-                    ),
-                    SizedBox(
-                      height: 180,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: data.results.length,
-                        itemBuilder: (context, i) {
-                          final r = data.results[i];
-                          final rating = r.authorDetails.rating;
-                          return Container(
-                            width: 280,
-                            margin: const EdgeInsets.only(right: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: cardColor,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: textPrimary.withOpacity(0.1)),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 20,
-                                      backgroundColor: const Color(0xFFE50914),
-                                      backgroundImage: r.authorDetails.avatarPath != null
-                                          ? CachedNetworkImageProvider(
-                                              r.authorDetails.avatarPath!.startsWith('/')
-                                                  ? '${Endpoints.imageBaseUrl}${r.authorDetails.avatarPath}'
-                                                  : r.authorDetails.avatarPath!,
-                                            )
-                                          : null,
-                                      child: r.authorDetails.avatarPath == null
-                                          ? Text(r.author.isNotEmpty ? r.author[0].toUpperCase() : '?',
-                                              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold))
-                                          : null,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(r.author,
-                                              style: GoogleFonts.poppins(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 13),
-                                              maxLines: 1, overflow: TextOverflow.ellipsis),
-                                          if (rating != null)
-                                            Row(
-                                              children: [
-                                                const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 14),
-                                                const SizedBox(width: 2),
-                                                Text(rating.toStringAsFixed(1),
-                                                    style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontSize: 12, fontWeight: FontWeight.w600)),
-                                              ],
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Expanded(
-                                  child: Text(r.content,
-                                      style: GoogleFonts.poppins(color: textSecondary, fontSize: 12, height: 1.5),
-                                      maxLines: 4, overflow: TextOverflow.ellipsis),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
-                );
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (e, _) => const SizedBox.shrink(),
-            ),
-          ),
+
 
           // ── Keywords ─────────────────────────────────────────────
           SliverToBoxAdapter(
@@ -734,7 +648,7 @@ class _CompactActionButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     bool active = isActive;
     if (isActiveProvider != null) {
-      active = ref.watch(isActiveProvider!).value ?? false;
+      active = ref.watch(isActiveProvider!).valueOrNull ?? false;
     }
 
     return Expanded(

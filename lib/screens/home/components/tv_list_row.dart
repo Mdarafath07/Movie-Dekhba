@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../models/tv_show_model.dart';
 import '../../../api/endpoints.dart';
 import '../../../widgets/shimmer_loading.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 class TvListRow extends StatelessWidget {
   final String title;
@@ -22,35 +23,43 @@ class TvListRow extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? const Color(0xFFF0F2F5) : const Color(0xFF0D1117);
     final textSecondary = isDark ? const Color(0xFF8B95A8) : const Color(0xFF4A5568);
+    final rowHeight = Responsive.rowHeight(context);
+    final cardWidth = Responsive.cardWidth(context);
+    final hPad = Responsive.horizontalPad(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (title.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 10),
             child: Text(title, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary)),
           ),
         SizedBox(
-          height: 220,
+          height: rowHeight,
           child: asyncValue.when(
             data: (shows) => ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 11.0),
+              padding: EdgeInsets.symmetric(horizontal: hPad - 5),
               itemCount: shows.length,
               itemBuilder: (context, index) {
                 final show = shows[index];
-                return _TvCard(show: show, textPrimary: textPrimary, textSecondary: textSecondary);
+                return _TvCard(
+                  show: show,
+                  cardWidth: cardWidth,
+                  textPrimary: textPrimary,
+                  textSecondary: textSecondary,
+                );
               },
             ),
             loading: () => ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 11.0),
+              padding: EdgeInsets.symmetric(horizontal: hPad - 5),
               itemCount: 6,
-              itemBuilder: (context, index) => const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.0),
-                child: ShimmerLoading(width: 130, height: 200),
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: ShimmerLoading(width: cardWidth, height: rowHeight - 38),
               ),
             ),
             error: (e, _) => Center(
@@ -68,17 +77,23 @@ class TvListRow extends StatelessWidget {
 
 class _TvCard extends StatelessWidget {
   final TvShow show;
+  final double cardWidth;
   final Color textPrimary;
   final Color textSecondary;
 
-  const _TvCard({required this.show, required this.textPrimary, required this.textSecondary});
+  const _TvCard({
+    required this.show,
+    required this.cardWidth,
+    required this.textPrimary,
+    required this.textSecondary,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.push('/tv/${show.id}'),
       child: Container(
-        width: 130,
+        width: cardWidth,
         margin: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +108,7 @@ class _TvCard extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: '${Endpoints.imageBaseUrl}${show.posterPath}',
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => const ShimmerLoading(width: 130, height: 170),
+                            placeholder: (_, __) => ShimmerLoading(width: cardWidth, height: 170),
                             errorWidget: (_, __, ___) => Container(
                               color: Colors.grey[900],
                               child: const Icon(Icons.tv, color: Colors.white30, size: 40),

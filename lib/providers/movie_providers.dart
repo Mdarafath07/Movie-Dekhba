@@ -65,3 +65,7 @@ final movieWatchProvidersProvider = FutureProvider.family((ref, int id) async {
 final movieReleaseDatesProvider = FutureProvider.family((ref, int id) async {
   return ref.watch(movieRepositoryProvider).getReleaseDates(id);
 });
+final animeMoviesProvider = FutureProvider<List<Movie>>((ref) async {
+  final repository = ref.watch(movieRepositoryProvider);
+  return repository.discoverMovies(withGenres: '16');
+});

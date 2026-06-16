@@ -64,10 +64,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           if (user != null) context.go('/main');
         },
         error: (err, _) {
+          String msg = err.toString().toLowerCase();
+          if (msg.contains('email-already-in-use') || msg.contains('already') || msg.contains('use')) {
+            msg = 'Already have an account';
+          } else if (msg.contains('invalid-email')) {
+            msg = 'Wrong Email';
+          } else if (msg.contains('weak')) {
+            msg = 'Pass Too Weak';
+          } else if (msg.contains('network') || msg.contains('internet')) {
+            msg = 'Network Error';
+          } else if (msg.contains('too-many')) {
+            msg = 'Too Many Tries';
+          } else {
+            msg = 'Registration Failed';
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(err.toString().replaceAll('Exception: ', '')),
+              content: Text(msg),
               behavior: SnackBarBehavior.floating,
+              width: 220,
             ),
           );
         },
@@ -140,8 +155,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
           // ── Main content ──────────────────────────────────
           SafeArea(
-            child: Column(
-              children: [
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  children: [
                 // ── Back button ──────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -207,7 +225,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                           const SizedBox(height: 4),
 
                           Text(
-                            'Join the Movie Dekhba community 🎬',
+                            'Join the Movie Dekhba community',
                             style: GoogleFonts.poppins(
                               color: isDark
                                   ? const Color(0xFF8B95A8)
@@ -227,9 +245,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: Icons.email_outlined,
                             textInputAction: TextInputAction.next,
-                            validator: (val) => val != null && val.isNotEmpty
-                                ? null
-                                : 'Email required',
+                            validator: (val) {
+                              if (val == null || val.isEmpty) return 'Required';
+                              final emailRegExp = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                              if (!emailRegExp.hasMatch(val)) return 'Wrong Email';
+                              return null;
+                            },
                           )
                               .animate()
                               .fade(delay: 200.ms, duration: 400.ms)
@@ -244,10 +265,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             isPassword: true,
                             prefixIcon: Icons.lock_outline_rounded,
                             textInputAction: TextInputAction.next,
-                            validator: (val) =>
-                                val != null && val.length >= 6
-                                    ? null
-                                    : 'Min 6 characters',
+                            validator: (val) {
+                              if (val == null || val.isEmpty) return 'Required';
+                              if (val.length < 6) return 'Short Password';
+                              return null;
+                            },
                           )
                               .animate()
                               .fade(delay: 250.ms, duration: 400.ms)
@@ -264,10 +286,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             textInputAction: TextInputAction.done,
                             onFieldSubmitted: (_) =>
                                 isLoading ? null : _register(),
-                            validator: (val) =>
-                                val != null && val.isNotEmpty
-                                    ? null
-                                    : 'Required',
+                            validator: (val) {
+                              if (val == null || val.isEmpty) return 'Required';
+                              if (val != _passwordController.text) return 'Not Match';
+                              return null;
+                            },
                           )
                               .animate()
                               .fade(delay: 300.ms, duration: 400.ms)
@@ -318,15 +341,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                           const SizedBox(height: 40),
 
                           Center(
-                            child: Text(
-                              'Developed by Arafath ❤️',
-                              style: GoogleFonts.poppins(
-                                color: isDark
-                                    ? const Color(0xFF4A5568)
-                                    : const Color(0xFF9BA3AF),
-                                fontSize: 11,
-                              ),
-                            ),
+                            
                           )
                               .animate()
                               .fade(delay: 500.ms, duration: 400.ms),
@@ -340,6 +355,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
               ],
             ),
           ),
+        ),
+      ),
         ],
       ),
     );

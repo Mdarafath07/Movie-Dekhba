@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthRepository {
@@ -32,17 +33,22 @@ class AuthRepository {
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (kIsWeb) {
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        return await _auth.signInWithPopup(googleProvider);
+      } else {
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) return null;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
 
-      return await _auth.signInWithCredential(credential);
+        return await _auth.signInWithCredential(credential);
+      }
     } catch (e) {
       throw Exception('Google sign-in failed: $e');
     }
@@ -76,18 +82,7 @@ class AuthRepository {
 
   String _handleAuthError(dynamic error) {
     if (error is FirebaseAuthException) {
-      switch (error.code) {
-        case 'user-not-found':
-          return 'No user found for that email.';
-        case 'wrong-password':
-          return 'Wrong password provided for that user.';
-        case 'email-already-in-use':
-          return 'The account already exists for that email.';
-        case 'weak-password':
-          return 'The password provided is too weak.';
-        default:
-          return error.message ?? 'An unknown error occurred.';
-      }
+      return 'auth/${error.code}';
     }
     return error.toString();
   }

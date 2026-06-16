@@ -5,6 +5,7 @@ import '../../providers/search_providers.dart';
 import '../../providers/find_providers.dart';
 import '../../widgets/movie_poster.dart';
 import '../../providers/history_providers.dart';
+import '../../core/utils/responsive_utils.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -205,30 +206,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             );
           }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 0.65,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+          return Responsive.constrainedContent(
+            context: context,
+            child: GridView.builder(
+              padding: const EdgeInsets.all(12),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: Responsive.gridColumns(context),
+                childAspectRatio: Responsive.gridAspectRatio(context),
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: results.length,
+              itemBuilder: (context, index) {
+                final item = results[index];
+                return MoviePoster(
+                  posterPath: item.displayImagePath,
+                  width: double.infinity,
+                  height: double.infinity,
+                  onTap: () {
+                    if (item.mediaType == 'movie') {
+                      context.push('/movie/${item.id}');
+                    } else if (item.mediaType == 'tv') {
+                      context.push('/tv/${item.id}');
+                    }
+                  },
+                );
+              },
             ),
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              final item = results[index];
-              return MoviePoster(
-                posterPath: item.displayImagePath,
-                width: double.infinity,
-                height: double.infinity,
-                onTap: () {
-                  if (item.mediaType == 'movie') {
-                    context.push('/movie/${item.id}');
-                  } else if (item.mediaType == 'tv') {
-                    context.push('/tv/${item.id}');
-                  }
-                },
-              );
-            },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

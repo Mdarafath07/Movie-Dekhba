@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../../api/endpoints.dart';
 import '../../providers/tv_providers.dart';
 import '../../models/tv_episode_detail_model.dart';
@@ -398,70 +399,77 @@ class _EpisodeContent extends ConsumerWidget {
                       );
                     },
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Consumer(
-                          builder: (context, ref, child) {
-                            final seriesIdsAsync = ref.watch(tvExternalIdsProvider(params.seriesId));
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.isWeb(context) ? 420 : double.infinity,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                final seriesIdsAsync = ref.watch(tvExternalIdsProvider(params.seriesId));
 
-                            return ElevatedButton.icon(
-                              onPressed: () {
-                                seriesIdsAsync.when(
-                                  data: (sIds) {
-                                    final url = PlayUrlHelper.getTvServers(
-                                      imdbId: sIds.imdbId,
-                                      tmdbId: params.seriesId,
-                                      season: params.seasonNumber,
-                                      episode: params.episodeNumber,
-                                    ).first.url;
-                                    context.push('/play', extra: url);
+                                return ElevatedButton.icon(
+                                  onPressed: () {
+                                    seriesIdsAsync.when(
+                                      data: (sIds) {
+                                        final url = PlayUrlHelper.getTvServers(
+                                          imdbId: sIds.imdbId,
+                                          tmdbId: params.seriesId,
+                                          season: params.seasonNumber,
+                                          episode: params.episodeNumber,
+                                        ).first.url;
+                                        context.push('/play', extra: url);
+                                      },
+                                      loading: () => ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Loading playback info...')),
+                                      ),
+                                      error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('No internet connection')),
+                                      ),
+                                    );
                                   },
-                                  loading: () => ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Loading playback info...')),
-                                  ),
-                                  error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('No internet connection')),
+                                  icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
+                                  label: Text('PLAY EPISODE', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.8)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFE50914),
+                                    minimumSize: const Size(0, 54),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    elevation: 8,
+                                    shadowColor: const Color(0xFFE50914).withOpacity(0.3),
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
-                              label: Text('PLAY EPISODE', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.8)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFE50914),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: OutlinedButton.icon(
+                              onPressed: onRate,
+                              icon: Icon(
+                                userRating != null ? Icons.star_rounded : Icons.star_outline_rounded,
+                                color: const Color(0xFFFFD700),
+                                size: 22,
+                              ),
+                              label: Text(
+                                userRating != null ? '${userRating!.toStringAsFixed(1)}' : 'RATE',
+                                style: GoogleFonts.poppins(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: isDark ? Colors.white10 : Colors.black12),
+                                backgroundColor: cardColor,
                                 minimumSize: const Size(0, 54),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                elevation: 8,
-                                shadowColor: const Color(0xFFE50914).withOpacity(0.3),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: OutlinedButton.icon(
-                          onPressed: onRate,
-                          icon: Icon(
-                            userRating != null ? Icons.star_rounded : Icons.star_outline_rounded,
-                            color: const Color(0xFFFFD700),
-                            size: 22,
-                          ),
-                          label: Text(
-                            userRating != null ? '${userRating!.toStringAsFixed(1)}' : 'RATE',
-                            style: GoogleFonts.poppins(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: isDark ? Colors.white10 : Colors.black12),
-                            backgroundColor: cardColor,
-                            minimumSize: const Size(0, 54),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 32),
 

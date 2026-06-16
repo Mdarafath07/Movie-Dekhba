@@ -12,9 +12,12 @@ class TvRepository {
 
   TvRepository({DioClient? dioClient}) : _dioClient = dioClient ?? DioClient();
 
-  Future<TvShowResponse> getTrendingTv() async {
+  Future<TvShowResponse> getTrendingTv({int page = 1}) async {
     try {
-      final response = await _dioClient.dio.get(Endpoints.trendingTv);
+      final response = await _dioClient.dio.get(
+        Endpoints.trendingTv,
+        queryParameters: {'page': page},
+      );
       return TvShowResponse.fromJson(response.data);
     } catch (e) {
       throw Exception('Failed to load trending TV shows: $e');

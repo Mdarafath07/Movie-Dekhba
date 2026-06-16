@@ -17,36 +17,48 @@ class MovieRepository {
 
   MovieRepository({DioClient? dioClient}) : _dioClient = dioClient ?? DioClient();
 
-  Future<List<Movie>> getTrendingMovies() async {
+  Future<List<Movie>> getTrendingMovies({int page = 1}) async {
     try {
-      final response = await _dioClient.dio.get(Endpoints.trendingMovies);
+      final response = await _dioClient.dio.get(
+        Endpoints.trendingMovies,
+        queryParameters: {'page': page},
+      );
       return MovieResponse.fromJson(response.data).results;
     } on DioException catch (e) {
       throw Exception('Failed to load trending movies: ${e.message}');
     }
   }
 
-  Future<List<Movie>> getPopularMovies() async {
+  Future<List<Movie>> getPopularMovies({int page = 1}) async {
     try {
-      final response = await _dioClient.dio.get(Endpoints.popularMovies);
+      final response = await _dioClient.dio.get(
+        Endpoints.popularMovies,
+        queryParameters: {'page': page},
+      );
       return MovieResponse.fromJson(response.data).results;
     } catch (e) {
       throw Exception('Failed to load popular movies: $e');
     }
   }
 
-  Future<List<Movie>> getTopRatedMovies() async {
+  Future<List<Movie>> getTopRatedMovies({int page = 1}) async {
     try {
-      final response = await _dioClient.dio.get(Endpoints.topRatedMovies);
+      final response = await _dioClient.dio.get(
+        Endpoints.topRatedMovies,
+        queryParameters: {'page': page},
+      );
       return MovieResponse.fromJson(response.data).results;
     } catch (e) {
       throw Exception('Failed to load top rated movies: $e');
     }
   }
 
-  Future<List<Movie>> getUpcomingMovies() async {
+  Future<List<Movie>> getUpcomingMovies({int page = 1}) async {
     try {
-      final response = await _dioClient.dio.get(Endpoints.upcomingMovies);
+      final response = await _dioClient.dio.get(
+        Endpoints.upcomingMovies,
+        queryParameters: {'page': page},
+      );
       return MovieResponse.fromJson(response.data).results;
     } catch (e) {
       throw Exception('Failed to load upcoming movies: $e');
@@ -180,17 +192,31 @@ class MovieRepository {
     }
   }
 
-  Future<List<Movie>> discoverMovies({int page = 1}) async {
+  Future<List<Movie>> discoverMovies({
+    int page = 1,
+    String? withGenres,
+    String? certification,
+    String? certificationCountry = 'US',
+  }) async {
     try {
+      final Map<String, dynamic> queryParams = {
+        'include_adult': 'false',
+        'include_video': 'false',
+        'language': 'en-US',
+        'page': page.toString(),
+        'sort_by': 'popularity.desc',
+      };
+      if (withGenres != null) {
+        queryParams['with_genres'] = withGenres;
+      }
+      if (certification != null) {
+        queryParams['certification.lte'] = certification;
+        queryParams['certification_country'] = certificationCountry;
+      }
+
       final response = await _dioClient.dio.get(
         Endpoints.discoverMovies,
-        queryParameters: {
-          'include_adult': 'false',
-          'include_video': 'false',
-          'language': 'en-US',
-          'page': page.toString(),
-          'sort_by': 'popularity.desc',
-        },
+        queryParameters: queryParams,
       );
       return MovieResponse.fromJson(response.data).results;
     } catch (e) {

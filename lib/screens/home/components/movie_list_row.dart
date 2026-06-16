@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../models/movie_model.dart';
 import '../../../api/endpoints.dart';
 import '../../../widgets/shimmer_loading.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 class MovieListRow extends StatelessWidget {
   final String title;
@@ -22,35 +23,43 @@ class MovieListRow extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? const Color(0xFFF0F2F5) : const Color(0xFF0D1117);
     final textSecondary = isDark ? const Color(0xFF8B95A8) : const Color(0xFF4A5568);
+    final rowHeight = Responsive.rowHeight(context);
+    final cardWidth = Responsive.cardWidth(context);
+    final hPad = Responsive.horizontalPad(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (title.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 10),
             child: Text(title, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary)),
           ),
         SizedBox(
-          height: 220,
+          height: rowHeight,
           child: asyncValue.when(
             data: (movies) => ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 11.0),
+              padding: EdgeInsets.symmetric(horizontal: hPad - 5),
               itemCount: movies.length,
               itemBuilder: (context, index) {
                 final movie = movies[index];
-                return _MovieCard(movie: movie, textPrimary: textPrimary, textSecondary: textSecondary);
+                return _MovieCard(
+                  movie: movie,
+                  cardWidth: cardWidth,
+                  textPrimary: textPrimary,
+                  textSecondary: textSecondary,
+                );
               },
             ),
             loading: () => ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 11.0),
+              padding: EdgeInsets.symmetric(horizontal: hPad - 5),
               itemCount: 6,
-              itemBuilder: (context, index) => const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 5.0),
-                child: ShimmerLoading(width: 130, height: 200),
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                child: ShimmerLoading(width: cardWidth, height: rowHeight - 38),
               ),
             ),
             error: (e, _) => Center(
@@ -68,17 +77,23 @@ class MovieListRow extends StatelessWidget {
 
 class _MovieCard extends StatelessWidget {
   final Movie movie;
+  final double cardWidth;
   final Color textPrimary;
   final Color textSecondary;
 
-  const _MovieCard({required this.movie, required this.textPrimary, required this.textSecondary});
+  const _MovieCard({
+    required this.movie,
+    required this.cardWidth,
+    required this.textPrimary,
+    required this.textSecondary,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.push('/movie/${movie.id}'),
       child: Container(
-        width: 130,
+        width: cardWidth,
         margin: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +108,7 @@ class _MovieCard extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: '${Endpoints.imageBaseUrl}${movie.posterPath}',
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => const ShimmerLoading(width: 130, height: 170),
+                            placeholder: (_, __) => ShimmerLoading(width: cardWidth, height: 170),
                             errorWidget: (_, __, ___) => Container(
                               color: Colors.grey[900],
                               child: const Icon(Icons.movie, color: Colors.white30, size: 40),

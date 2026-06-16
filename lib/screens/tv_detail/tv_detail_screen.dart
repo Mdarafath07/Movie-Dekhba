@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../../api/endpoints.dart';
 import '../../models/tv_detail_model.dart';
 import '../../providers/tv_detail_providers.dart';
@@ -264,47 +265,57 @@ class _TvDetailContentState extends ConsumerState<_TvDetailContent> with SingleT
                   Consumer(
                     builder: (context, ref, child) {
                       final externalIdsAsync = ref.watch(tvExternalIdsProvider(tv.id));
-                      return ElevatedButton.icon(
-                        onPressed: () {
-                          externalIdsAsync.when(
-                            data: (ids) {
-                              if (ids.imdbId != null) {
-                                setState(() => _cachedImdbId = ids.imdbId);
-                              }
-                              final url = PlayUrlHelper.getTvServers(
-                                imdbId: ids.imdbId,
-                                tmdbId: tv.id,
-                                season: 1,
-                                episode: 1,
-                              ).first.url;
-                              ref.read(recentPlaysProvider.notifier).addToRecent(
-                                FavoriteItem(
-                                  id: tv.id,
-                                  title: tv.name,
-                                  posterPath: tv.posterPath,
-                                  mediaType: 'tv',
-                                  voteAverage: tv.voteAverage.toDouble(),
-                                  createdAt: DateTime.now(),
-                                ),
-                              );
-                              context.push('/play', extra: url);
-                            },
-                            loading: () => ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Loading playback info...')),
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: Responsive.isWeb(context) ? 320 : double.infinity,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                externalIdsAsync.when(
+                                  data: (ids) {
+                                    if (ids.imdbId != null) {
+                                      setState(() => _cachedImdbId = ids.imdbId);
+                                    }
+                                    final url = PlayUrlHelper.getTvServers(
+                                      imdbId: ids.imdbId,
+                                      tmdbId: tv.id,
+                                      season: 1,
+                                      episode: 1,
+                                    ).first.url;
+                                    ref.read(recentPlaysProvider.notifier).addToRecent(
+                                      FavoriteItem(
+                                        id: tv.id,
+                                        title: tv.name,
+                                        posterPath: tv.posterPath,
+                                        mediaType: 'tv',
+                                        voteAverage: tv.voteAverage.toDouble(),
+                                        createdAt: DateTime.now(),
+                                      ),
+                                    );
+                                    context.push('/play', extra: url);
+                                  },
+                                  loading: () => ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Loading playback info...')),
+                                  ),
+                                  error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('No internet connection')),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.play_arrow_rounded, size: 28, color: Colors.white),
+                              label: Text('PLAY NOW', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 1.1)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFE50914),
+                                minimumSize: const Size(double.infinity, 54),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 8,
+                                shadowColor: const Color(0xFFE50914).withOpacity(0.4),
+                              ),
                             ),
-                            error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('No internet connection')),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.play_arrow_rounded, size: 28, color: Colors.white),
-                        label: Text('PLAY NOW', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 1.1)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE50914),
-                          minimumSize: const Size(double.infinity, 54),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 8,
-                          shadowColor: const Color(0xFFE50914).withOpacity(0.4),
+                          ),
                         ),
                       );
                     },
@@ -463,7 +474,7 @@ class _CompactActionButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     bool active = isActive;
     if (isActiveProvider != null) {
-      active = ref.watch(isActiveProvider!).value ?? false;
+      active = ref.watch(isActiveProvider!).valueOrNull ?? false;
     }
 
     return Expanded(

@@ -32,8 +32,26 @@ class AppUpdateInfo {
   }
 }
 
+class WebConfig {
+  final String apkUrl;
+  final bool bannerEnabled;
+
+  WebConfig({
+    required this.apkUrl,
+    required this.bannerEnabled,
+  });
+
+  factory WebConfig.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+    return WebConfig(
+      apkUrl: data['apk_url'] ?? '',
+      bannerEnabled: data['banner_enabled'] ?? false,
+    );
+  }
+}
+
 class UpdateService {
-  static const String currentVersion = '1.0.0'; // Manually update this before releasing new versions
+  static const String currentVersion = '1.0.2'; // Manually update this before releasing new versions
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -45,6 +63,18 @@ class UpdateService {
       }
     } catch (e) {
       print('Update check error: $e');
+    }
+    return null;
+  }
+
+  Future<WebConfig?> getWebConfig() async {
+    try {
+      final doc = await _firestore.collection('app_settings').doc('web_config').get();
+      if (doc.exists) {
+        return WebConfig.fromFirestore(doc);
+      }
+    } catch (e) {
+      print('Get WebConfig error: $e');
     }
     return null;
   }
