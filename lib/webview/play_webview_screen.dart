@@ -50,58 +50,15 @@ class _PlayWebViewScreenState extends State<PlayWebViewScreen> {
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
-      // On web: full-screen iframe with overlays to hide player branding logos.
       return Scaffold(
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            // Iframe fills the entire viewport
             Positioned.fill(
               child: _webViewWidget ?? const SizedBox.shrink(),
             ),
 
-            // ── Logo-hiding overlays ────────────────────────────────────────
-            // These black boxes cover the corners where player watermarks
-            // typically appear. IgnorePointer ensures video controls still work.
-
-            // Top-left logo cover (back button is here too)
-            Positioned(
-              top: 0,
-              left: 0,
-              child: IgnorePointer(
-                child: Container(
-                  width: 120,
-                  height: 48,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            // Top-right logo cover
-            Positioned(
-              top: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: Container(
-                  width: 160,
-                  height: 48,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            // Bottom-right logo cover
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: Container(
-                  width: 160,
-                  height: 40,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-
-            // ── Back button (on top of the logo cover, clickable) ───────────
+            // ── Back button ──────────────────────────────────────────
             Positioned(
               top: 8,
               left: 8,

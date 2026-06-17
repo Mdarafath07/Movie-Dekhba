@@ -51,7 +51,7 @@ class WebConfig {
 }
 
 class UpdateService {
-  static const String currentVersion = '1.0.2'; // Manually update this before releasing new versions
+  static const String currentVersion = '1.0.3'; // Manually update this before releasing new versions
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 

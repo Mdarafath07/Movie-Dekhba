@@ -381,7 +381,7 @@ class ProfileScreen extends ConsumerWidget {
 
 
                         Text(
-                          'Movie Dekhba v1.0.2',
+                          'Movie Dekhba v1.0.3',
                           style: GoogleFonts.poppins(
                             color: textSecondary.withOpacity(0.5),
                             fontSize: 10.5,

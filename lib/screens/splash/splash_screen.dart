@@ -256,7 +256,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 ).animate().fade(delay: 1500.ms, duration: 800.ms),
                 const SizedBox(height: 4),
                 Text(
-                  'v1.0.2',
+                  'v1.0.3',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     color: const Color(0xFF2A3142),
