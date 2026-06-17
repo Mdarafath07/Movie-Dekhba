@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
 import 'home_screen.dart';
 import '../search/search_screen.dart';
 import '../profile/profile_screen.dart';
@@ -69,7 +68,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isDesktop = Responsive.isDesktop(context);
     final isTablet = Responsive.isTablet(context);
-    final isWeb = isDesktop || isTablet;
+    final isWeb = kIsWeb && (isDesktop || isTablet);
 
     if (isWeb) {
       return _WebLayout(
@@ -121,8 +120,8 @@ class _MainWrapperState extends ConsumerState<MainWrapper>
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
+                  icon: Icon(Icons.home_outlined, size: 24),
+                  activeIcon: Icon(Icons.home_rounded, size: 24),
                   label: 'Home',
                   isActive: _currentIndex == 0,
                   controller: _iconControllers[0],
@@ -130,8 +129,8 @@ class _MainWrapperState extends ConsumerState<MainWrapper>
                   onTap: () => _onTabTap(0),
                 ),
                 _NavItem(
-                  icon: Icons.search_outlined,
-                  activeIcon: Icons.search_rounded,
+                  icon: Icon(Icons.search_outlined, size: 24),
+                  activeIcon: Icon(Icons.search_rounded, size: 24),
                   label: 'Search',
                   isActive: _currentIndex == 1,
                   controller: _iconControllers[1],
@@ -139,8 +138,8 @@ class _MainWrapperState extends ConsumerState<MainWrapper>
                   onTap: () => _onTabTap(1),
                 ),
                 _NavItem(
-                  icon: Icons.favorite_border_rounded,
-                  activeIcon: Icons.favorite_rounded,
+                  icon: Icon(Icons.favorite_border_rounded, size: 24),
+                  activeIcon: Icon(Icons.favorite_rounded, size: 24),
                   label: 'Favorites',
                   isActive: _currentIndex == 2,
                   controller: _iconControllers[2],
@@ -148,8 +147,8 @@ class _MainWrapperState extends ConsumerState<MainWrapper>
                   onTap: () => _onTabTap(2),
                 ),
                 _NavItem(
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
+                  icon: Icon(Icons.person_outline_rounded, size: 24),
+                  activeIcon: Icon(Icons.person_rounded, size: 24),
                   label: 'Profile',
                   isActive: _currentIndex == 3,
                   controller: _iconControllers[3],
@@ -237,10 +236,10 @@ class _WebLayout extends ConsumerWidget {
     final activeColor = const Color(0xFFE50914);
 
     final navItems = [
-      _SideNavItem(icon: Icons.home_rounded, outlinedIcon: Icons.home_outlined, label: 'Home'),
-      _SideNavItem(icon: Icons.search_rounded, outlinedIcon: Icons.search_outlined, label: 'Search'),
-      _SideNavItem(icon: Icons.favorite_rounded, outlinedIcon: Icons.favorite_border_rounded, label: 'Favorites'),
-      _SideNavItem(icon: Icons.person_rounded, outlinedIcon: Icons.person_outline_rounded, label: 'Profile'),
+      _SideNavItem(icon: Icon(Icons.home_rounded, size: 22), outlinedIcon: Icon(Icons.home_outlined, size: 22), label: 'Home'),
+      _SideNavItem(icon: Icon(Icons.search_rounded, size: 22), outlinedIcon: Icon(Icons.search_outlined, size: 22), label: 'Search'),
+      _SideNavItem(icon: Icon(Icons.favorite_rounded, size: 22), outlinedIcon: Icon(Icons.favorite_border_rounded, size: 22), label: 'Favorites'),
+      _SideNavItem(icon: Icon(Icons.person_rounded, size: 22), outlinedIcon: Icon(Icons.person_outline_rounded, size: 22), label: 'Profile'),
     ];
 
     final sidebarWidth = isDesktop ? 220.0 : 68.0;
@@ -373,14 +372,10 @@ class _WebLayout extends ConsumerWidget {
                                     ? MainAxisAlignment.start
                                     : MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    isActive ? item.icon : item.outlinedIcon,
-                                    color: isActive
-                                        ? activeColor
-                                        : (isDark
-                                            ? const Color(0xFF8B95A8)
-                                            : const Color(0xFF4A5568)),
-                                    size: 22,
+                                  SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: isActive ? item.icon : item.outlinedIcon,
                                   ),
                                   if (isDesktop) ...[
                                     const SizedBox(width: 14),
@@ -675,8 +670,8 @@ class _WebUpdateBanner extends StatelessWidget {
 }
 
 class _SideNavItem {
-  final IconData icon;
-  final IconData outlinedIcon;
+  final Widget icon;
+  final Widget outlinedIcon;
   final String label;
   const _SideNavItem({
     required this.icon,
@@ -687,8 +682,8 @@ class _SideNavItem {
 
 // ── Mobile Nav Item ─────────────────────────────────────────────
 class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
+  final Widget icon;
+  final Widget activeIcon;
   final String label;
   final bool isActive;
   final AnimationController controller;
@@ -738,10 +733,10 @@ class _NavItem extends StatelessWidget {
                   child: Center(
                     child: Transform.scale(
                       scale: isActive ? (0.9 + 0.1 * t) : 1.0,
-                      child: Icon(
-                        isActive ? activeIcon : icon,
-                        color: isActive ? activeColor : inactiveColor,
-                        size: 24,
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: isActive ? activeIcon : icon,
                       ),
                     ),
                   ),

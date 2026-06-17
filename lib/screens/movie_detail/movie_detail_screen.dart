@@ -100,7 +100,7 @@ class _MovieDetailContentState extends ConsumerState<_MovieDetailContent> {
         slivers: [
           // ── Hero AppBar ──────────────────────────────────────────
           SliverAppBar(
-            expandedHeight: 420,
+            expandedHeight: MediaQuery.of(context).size.height * 0.45,
             pinned: true,
             backgroundColor: bgColor,
             elevation: 0,
@@ -611,8 +611,11 @@ class _SectionTitle extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        Text(title,
-            style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
+        Flexible(
+          child: Text(title,
+              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
       ],
     );
   }

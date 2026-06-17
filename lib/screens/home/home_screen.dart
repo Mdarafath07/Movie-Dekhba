@@ -18,6 +18,7 @@ import '../../providers/app_config_provider.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/update_service.dart';
+import '../../core/theme/app_icons.dart';
 import '../../widgets/update_dialog.dart';
 import '../../widgets/welcome_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -180,7 +181,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       _SectionHeader(
                         title: 'Continue Watching',
                         subtitle: 'Pick up where you left off',
-                        icon: Icons.play_circle_outline_rounded,
+                        icon: Icon(Icons.play_circle_outline_rounded, color: const Color(0xFF3B82F6), size: 17),
                         iconColor: const Color(0xFF3B82F6),
                         isDark: isDark,
                         hPad: hPad,
@@ -214,7 +215,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: 'Anime Universe',
                       subtitle: 'Top animation & anime',
-                      icon: Icons.auto_awesome_rounded,
+                      icon: AppIcons.assetIcon('anime', size: 17, color: const Color(0xFFFF2E63)),
                       iconColor: const Color(0xFFFF2E63),
                       isDark: isDark,
                       hPad: hPad,
@@ -231,7 +232,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: 'Popular Movies',
                       subtitle: 'Top hits this week',
-                      icon: Icons.local_fire_department_rounded,
+                      icon: AppIcons.assetIcon('populer', size: 17, color: const Color(0xFFE50914)),
                       iconColor: const Color(0xFFE50914),
                       isDark: isDark,
                       hPad: hPad,
@@ -243,7 +244,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: 'Trending TV',
                       subtitle: 'Most watched shows',
-                      icon: Icons.trending_up_rounded,
+                      icon: AppIcons.assetIcon('tv', size: 17, color: const Color(0xFFF59E0B)),
                       iconColor: const Color(0xFFF59E0B),
                       isDark: isDark,
                       hPad: hPad,
@@ -255,7 +256,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: 'Popular TV Shows',
                       subtitle: 'Fan favorites',
-                      icon: Icons.tv_rounded,
+                      icon: AppIcons.assetIcon('tv', size: 17, color: const Color(0xFF8B5CF6)),
                       iconColor: const Color(0xFF8B5CF6),
                       isDark: isDark,
                       hPad: hPad,
@@ -267,7 +268,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: 'Top Rated Movies',
                       subtitle: 'Critically acclaimed',
-                      icon: Icons.military_tech_rounded,
+                      icon: AppIcons.assetIcon('topRated', size: 17, color: const Color(0xFFF5A623)),
                       iconColor: const Color(0xFFF5A623),
                       isDark: isDark,
                       hPad: hPad,
@@ -279,7 +280,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: 'Top Rated TV',
                       subtitle: 'Best of television',
-                      icon: Icons.star_rounded,
+                      icon: AppIcons.assetIcon('topRated', size: 17, color: const Color(0xFFF5A623)),
                       iconColor: const Color(0xFFF5A623),
                       isDark: isDark,
                       hPad: hPad,
@@ -291,7 +292,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: 'Upcoming Movies',
                       subtitle: 'Coming soon to theaters',
-                      icon: Icons.calendar_today_rounded,
+                      icon: AppIcons.assetIcon('upcoming', size: 17, color: const Color(0xFF06B6D4)),
                       iconColor: const Color(0xFF06B6D4),
                       isDark: isDark,
                       hPad: hPad,
@@ -303,7 +304,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: 'Popular People',
                       subtitle: 'Trending stars',
-                      icon: Icons.people_alt_rounded,
+                      icon: AppIcons.assetIcon('populer', size: 17, color: const Color(0xFF10B981)),
                       iconColor: const Color(0xFF10B981),
                       isDark: isDark,
                       hPad: hPad,
@@ -441,60 +442,70 @@ class _HomeAppBar extends ConsumerWidget {
               children: [
                 // Logo — hidden on web (sidebar has it)
                 if (!isWeb) ...[
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFE50914), Color(0xFFB20710)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFE50914).withOpacity(0.35),
-                          blurRadius: 10,
-                          spreadRadius: 0,
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFE50914), Color(0xFFB20710)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFE50914).withOpacity(0.35),
+                                blurRadius: 10,
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Image.asset(
+                                'lib/assets/applogo.png',
+                                color: Colors.white,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'মুভি দেখবা',
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.notoSansBengali(
+                                  color: isDark
+                                      ? const Color(0xFFF0F2F5)
+                                      : const Color(0xFF0D1117),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text(
+                                'MOVIE DEKHBA',
+                                style: GoogleFonts.poppins(
+                                  color: const Color(0xFFE50914),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Image.asset(
-                          'lib/assets/applogo.png',
-                          color: Colors.white,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'মুভি দেখবা',
-                        style: GoogleFonts.notoSansBengali(
-                          color: isDark
-                              ? const Color(0xFFF0F2F5)
-                              : const Color(0xFF0D1117),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Text(
-                        'MOVIE DEKHBA',
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFFE50914),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
                 if (isWeb)
@@ -587,7 +598,7 @@ class _HomeAppBar extends ConsumerWidget {
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final Widget icon;
   final Color iconColor;
   final bool isDark;
   final VoidCallback? onTap;
@@ -616,7 +627,7 @@ class _SectionHeader extends StatelessWidget {
               color: iconColor.withOpacity(0.14),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: iconColor, size: 17),
+            child: SizedBox(width: 17, height: 17, child: icon),
           ),
           const SizedBox(width: 10),
           Column(
@@ -772,63 +783,63 @@ class _GenreSelector extends StatelessWidget {
         children: [
           _GenreItem(
             title: 'Kids',
-            icon: Icons.child_care_rounded,
+            icon: AppIcons.assetIcon('kids', size: 18, color: const Color(0xFFF9A825)),
             color: const Color(0xFFF9A825),
             isDark: isDark,
-            genreId: '10751', // Family
+            genreId: '10751',
           ),
           _GenreItem(
             title: 'Cartoon',
-            icon: Icons.catching_pokemon_rounded,
+            icon: AppIcons.assetIcon('cartoon', size: 18, color: const Color(0xFF4CAF50)),
             color: const Color(0xFF4CAF50),
             isDark: isDark,
-            genreId: '16', // Animation
+            genreId: '16',
           ),
           _GenreItem(
             title: 'Horror',
-            icon: Icons.scuba_diving_rounded,
+            icon: AppIcons.assetIcon('horror', size: 18, color: const Color(0xFF9C27B0)),
             color: const Color(0xFF9C27B0),
             isDark: isDark,
             genreId: '27',
           ),
           _GenreItem(
             title: 'Adventure',
-            icon: Icons.explore_rounded,
+            icon: AppIcons.assetIcon('adventure', size: 18, color: const Color(0xFF03A9F4)),
             color: const Color(0xFF03A9F4),
             isDark: isDark,
             genreId: '12',
           ),
           _GenreItem(
             title: 'Action',
-            icon: Icons.bolt_rounded,
+            icon: AppIcons.assetIcon('actions', size: 18, color: const Color(0xFFFF5722)),
             color: const Color(0xFFFF5722),
             isDark: isDark,
             genreId: '28',
           ),
           _GenreItem(
             title: 'Sci-Fi',
-            icon: Icons.rocket_launch_rounded,
+            icon: AppIcons.assetIcon('scifi', size: 18, color: const Color(0xFF673AB7)),
             color: const Color(0xFF673AB7),
             isDark: isDark,
             genreId: '878',
           ),
           _GenreItem(
             title: 'Comedy',
-            icon: Icons.sentiment_very_satisfied_rounded,
+            icon: AppIcons.assetIcon('comedy', size: 18, color: const Color(0xFFFF4081)),
             color: const Color(0xFFFF4081),
             isDark: isDark,
             genreId: '35',
           ),
           _GenreItem(
             title: 'Romantic',
-            icon: Icons.favorite_rounded,
+            icon: Icon(Icons.favorite_rounded, color: const Color(0xFFF06292), size: 18),
             color: const Color(0xFFF06292),
             isDark: isDark,
             genreId: '10749',
           ),
           _GenreItem(
             title: 'Sex',
-            icon: Icons.no_adult_content_rounded,
+            icon: AppIcons.assetIcon('sex', size: 18, color: const Color(0xFFD32F2F)),
             color: const Color(0xFFD32F2F),
             isDark: isDark,
             genreId: '0',
@@ -885,7 +896,7 @@ class _GenreSelector extends StatelessWidget {
 
 class _GenreItem extends StatelessWidget {
   final String title;
-  final IconData icon;
+  final Widget icon;
   final Color color;
   final bool isDark;
   final String genreId;
@@ -923,7 +934,7 @@ class _GenreItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: color, size: 18),
+            SizedBox(width: 18, height: 18, child: icon),
             const SizedBox(width: 8),
             Text(
               title,
